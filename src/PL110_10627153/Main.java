@@ -131,6 +131,23 @@ class CutToken {
 
           } // if
 
+          int count = 0;
+          for ( int i = 0 ; i < mBuffer.size() ; i++ ) {
+            if ( mBuffer.get( i ).mtype == 1 )
+              count = count + 1;
+            else if ( mBuffer.get( i ).mtype == 2 )
+              count = count - 1;
+
+          } // for
+
+          if ( count < 0 ) {
+            System.out.println( "Unexpected token : '"
+                                + mBuffer.get( mBuffer.size() - 1 ).mstamStr + "'" );
+            System.out.print( "> " );
+            ProcessBeforSEMICOLONFormNowLine(); // mBuffer.clear() ;
+            throw new Throwable();
+          } // if
+
         } // else if
         else if ( mnowLine.charAt( 0 ) == ';' ) {
           mBuffer.add( new ATOM( ";", 6 ) );
@@ -161,8 +178,7 @@ class CutToken {
           } // if
 
           if ( mnowLine.charAt( 1 ) != '=' ) {
-            System.out.println( "Unexpected token : '"
-                                + mnowLine.substring( 1, 2 ) + "'" );
+            System.out.println( "Unrecognized token with first char : ':'" );
             System.out.print( "> " );
             ProcessBeforSEMICOLONFormNowLine(); // mBuffer.clear();
             throw new Throwable();
