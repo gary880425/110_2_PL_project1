@@ -3,6 +3,20 @@ package PL110_10627153;
 import java.util.Scanner;
 import java.util.Vector;
 
+class Global {
+
+  // Blow is Token Type
+  static final int s_T_LEFT_PAREN = 1;
+  static final int s_T_RIGHT_PAREN = 2;
+  static final int s_T_BOOLEANOPERATOE = 3; // &&, ||, !, ==, !=
+  static final int s_T_ID = 4;
+  static final int s_T_OPERATOR = 5; // +, -, *, /, %
+  static final int s_T_SEMICOLON = 6; // ;
+  static final int s_T_NUM = 7;
+  static final int s_T_ASSIGN = 11; // =, +=, -=, *=, /=, %=
+
+} // class Global
+
 class ATOM {
   public String mstamStr;
   public int mtype;
@@ -88,7 +102,7 @@ class CutToken {
           mBuffer.add( new ATOM( "(", 1 ) );
           IsGotTokenProcessFormNowLine( 1 );
           if ( mBuffer.size() > 1 ) {
-            if ( mBuffer.get( mBuffer.size() - 2 ).mtype == 4 ) {
+            if ( mBuffer.get( mBuffer.size() - 2 ).mtype == Global.s_T_ID ) {
 
               if ( FindVariable( mBuffer.get( mBuffer.size() - 2 ).mstamStr ) == - 1 ) {
                 System.out.println( "Undefined identifier : '"
@@ -106,7 +120,7 @@ class CutToken {
           mBuffer.add( new ATOM( ")", 2 ) );
           IsGotTokenProcessFormNowLine( 1 );
           if ( mBuffer.size() > 1 ) {
-            if ( mBuffer.get( mBuffer.size() - 2 ).mtype == 1 ) {
+            if ( mBuffer.get( mBuffer.size() - 2 ).mtype == Global.s_T_LEFT_PAREN ) {
               System.out.println( "Unexpected token : '"
                                   + mBuffer.get( mBuffer.size() - 1 ).mstamStr + "'" );
               System.out.print( "> " );
@@ -117,7 +131,7 @@ class CutToken {
           } // if
 
           if ( mBuffer.size() > 1 ) {
-            if ( mBuffer.get( mBuffer.size() - 2 ).mtype == 4 ) {
+            if ( mBuffer.get( mBuffer.size() - 2 ).mtype == Global.s_T_ID ) {
 
               if ( FindVariable( mBuffer.get( mBuffer.size() - 2 ).mstamStr ) == - 1 ) {
                 System.out.println( "Undefined identifier : '"
@@ -133,9 +147,9 @@ class CutToken {
 
           int count = 0;
           for ( int i = 0 ; i < mBuffer.size() ; i++ ) {
-            if ( mBuffer.get( i ).mtype == 1 )
+            if ( mBuffer.get( i ).mtype == Global.s_T_LEFT_PAREN )
               count = count + 1;
-            else if ( mBuffer.get( i ).mtype == 2 )
+            else if ( mBuffer.get( i ).mtype == Global.s_T_RIGHT_PAREN )
               count = count - 1;
 
           } // for
@@ -163,15 +177,13 @@ class CutToken {
             throw new Throwable();
           } // if
 
-          if ( ! notGetSEMICOLON ) {
-            Buffer1HasFullCommend( stament );
+          if ( Buffer1HasFullCommend( stament ) )
             return true;
-          } // if
 
         } // else if
         else if ( IsASSIGNInmNowLineFirst() ) {
           if ( mnowLine.length() == 1 ) {
-            System.out.println( "Unexpected token : ':'" );
+            System.out.println( "Unrecognized token with first char : ':'" );
             System.out.print( "> " );
             ProcessBeforSEMICOLONFormNowLine(); // mBuffer.clear();
             throw new Throwable();
@@ -184,7 +196,7 @@ class CutToken {
             throw new Throwable();
           } // if
 
-          mBuffer.add( new ATOM( ":=", 8 ) );
+          mBuffer.add( new ATOM( mnowLine.substring( 0, 2 ), 8 ) );
           IsGotTokenProcessFormNowLine( 2 );
           if ( mBuffer.size() > 1 ) {
             if ( mBuffer.get( mBuffer.size() - 2 ).mtype != 4 ) {
@@ -222,8 +234,8 @@ class CutToken {
 
 
           if ( mBuffer.size() > 2 ) {
-            if ( mBuffer.get( mBuffer.size() - 3 ).mtype == 5 &&
-                 mBuffer.get( mBuffer.size() - 2 ).mtype == 5 ) {
+            if ( mBuffer.get( mBuffer.size() - 3 ).mtype == Global.s_T_OPERATOR &&
+                 mBuffer.get( mBuffer.size() - 2 ).mtype == Global.s_T_OPERATOR ) {
 
               System.out.println( "Unexpected token : '"
                                   + mBuffer.get( mBuffer.size() - 1 ).mstamStr + "'" );
@@ -236,7 +248,7 @@ class CutToken {
           } // if
 
           if ( mBuffer.size() > 1 ) {
-            if ( mBuffer.get( mBuffer.size() - 2 ).mtype == 4 ) {
+            if ( mBuffer.get( mBuffer.size() - 2 ).mtype == Global.s_T_ID ) {
 
               if ( FindVariable( mBuffer.get( mBuffer.size() - 2 ).mstamStr ) == - 1 ) {
                 System.out.println( "Undefined identifier : '"
@@ -255,8 +267,8 @@ class CutToken {
           String gotNUM;
           gotNUM = GetNUMTokenInmNowLine();
 
-          if ( mBuffer.size() > 1 ) {
-            if ( mBuffer.get( mBuffer.size() - 1 ).mtype == 7 ) {
+          if ( mBuffer.size() > 0 ) {
+            if ( mBuffer.get( mBuffer.size() - 1 ).mtype == Global.s_T_NUM ) {
               System.out.println( "Unexpected token : '"
                                   + gotNUM + "'" );
               System.out.print( "> " );
@@ -321,9 +333,20 @@ class CutToken {
           gotBOOLEANOPERATOE = GetBOOLEANOPERATOETokenInmNowLine();
           mBuffer.add( new ATOM( gotBOOLEANOPERATOE, 3 ) );
           if ( mBuffer.size() > 1 ) {
-            if ( mBuffer.get( mBuffer.size() - 2 ).mtype == 3 ) {
+            if ( mBuffer.get( mBuffer.size() - 2 ).mtype == Global.s_T_BOOLEANOPERATOE ) {
               System.out.println( "Unexpected token : '"
                                   + mBuffer.get( mBuffer.size() - 1 ).mstamStr + "'" );
+              System.out.print( "> " );
+              ProcessBeforSEMICOLONFormNowLine(); // mBuffer.clear() ;
+              throw new Throwable();
+            } // if
+
+          } // if
+
+          if ( mBuffer.size() == 1 ) {
+            if ( mBuffer.get( 0 ).mtype == Global.s_T_BOOLEANOPERATOE ) {
+              System.out.println( "Unexpected token : '"
+                                  + mBuffer.get( 0 ).mstamStr + "'" );
               System.out.print( "> " );
               ProcessBeforSEMICOLONFormNowLine(); // mBuffer.clear() ;
               throw new Throwable();
@@ -338,8 +361,20 @@ class CutToken {
           mBuffer.add( new ATOM( gotID, 4 ) );
 
           if ( mBuffer.size() > 1 ) {
-            if ( mBuffer.get( mBuffer.size() - 2 ).mtype == 4 ) {
+            if ( mBuffer.get( mBuffer.size() - 2 ).mtype == Global.s_T_ID ) {
               System.out.println( "Unexpected token : '"
+                                  + mBuffer.get( mBuffer.size() - 1 ).mstamStr + "'" );
+              System.out.print( "> " );
+              ProcessBeforSEMICOLONFormNowLine(); // mBuffer.clear() ;
+              throw new Throwable();
+            } // if
+
+          } // if
+
+          if ( mBuffer.size() > 1 ) {
+
+            if ( FindVariable( mBuffer.get( mBuffer.size() - 1 ).mstamStr ) == - 1 ) {
+              System.out.println( "Undefined identifier : '"
                                   + mBuffer.get( mBuffer.size() - 1 ).mstamStr + "'" );
               System.out.print( "> " );
               ProcessBeforSEMICOLONFormNowLine(); // mBuffer.clear() ;
@@ -352,7 +387,8 @@ class CutToken {
             int nowIndex = mBuffer.size();
 
             if ( nowIndex > 2 ) {
-              if ( mBuffer.get( nowIndex - 2 ).mtype == 5 && mBuffer.get( nowIndex - 1 ).mtype == 5 ) {
+              if ( mBuffer.get( nowIndex - 2 ).mtype == Global.s_T_OPERATOR &&
+                   mBuffer.get( nowIndex - 1 ).mtype == Global.s_T_OPERATOR ) {
                 System.out.println( "Unexpected token : '"
                                     + mBuffer.get( mBuffer.size() - 1 ).mstamStr + "'" );
                 System.out.print( "> " );
@@ -429,7 +465,7 @@ class CutToken {
 
     int lestSEMICOLONIndex = - 1;
     for ( int i = 0 ; i < mBuffer.size() ; i++ ) {
-      if ( mBuffer.get( i ).mtype == 6 )
+      if ( mBuffer.get( i ).mtype == Global.s_T_SEMICOLON )
         lestSEMICOLONIndex = i;
     } // for
 
@@ -495,7 +531,7 @@ class CutToken {
     boolean gettingRun = true;
     boolean gotPoint = false;
 
-    while ( IsNumberAndNumberLegalWordInmNowLineFirstChar() && gettingRun ) {
+    while ( mnowLine.length() > 0 && IsNumberAndNumberLegalWordInmNowLineFirstChar() && gettingRun ) {
 
       if ( ! gotPoint && mnowLine.charAt( 0 ) != '.' ) {
         gotNum = gotNum + mnowLine.substring( 0, 1 );
@@ -519,13 +555,11 @@ class CutToken {
     RemoveHeadWhiteCherFormNowLine();
 
     // if ( mBuffer.size() > 0 ) {
-    //   if ( mBuffer.get( 0 ).mtype == 7 )
+    //   if ( mBuffer.get( 0 ).mtype == Global.s_T_NUM )
     //     return false;
     // } // if
 
     if ( IsLegalNUM( gotNum ) ) {
-      if ( gotNum.charAt( gotNum.length() - 1 ) == '.' )
-        gotNum = gotNum.substring( 0, gotNum.length() - 1 );
       return gotNum;
     } // if
     else {
@@ -629,7 +663,7 @@ class CutToken {
     boolean isHas = false;
 
     for ( int i = 0 ; i < mBuffer.size() ; i++ ) {
-      if ( mBuffer.get( i ).mtype == 6 ) {
+      if ( mBuffer.get( i ).mtype == Global.s_T_SEMICOLON ) {
         semicolonindex = i;
         isHas = true;
         i = mBuffer.size();
@@ -996,12 +1030,12 @@ class Paser {
 
     try {
 
-      if ( mstament.get( mindex ).mtype == 4 ) {
+      if ( mstament.get( mindex ).mtype == Global.s_T_ID ) {
         mindex++;
-        if ( mstament.get( mindex ).mtype == 8 ) {
+        if ( mstament.get( mindex ).mtype == Global.s_T_ASSIGN ) {
           mindex++;
           if ( ArithExp() ) {
-            if ( mstament.get( mindex ).mtype == 6 ) {
+            if ( mstament.get( mindex ).mtype == Global.s_T_SEMICOLON ) {
               mindex++;
               return true;
             } // if ()
@@ -1020,7 +1054,7 @@ class Paser {
 
         } // if ()
         else if ( IDlessArithExpOrBexp() ) {
-          if ( mstament.get( mindex ).mtype == 6 ) {
+          if ( mstament.get( mindex ).mtype == Global.s_T_SEMICOLON ) {
             mindex++;
             return true;
           } // if ()
@@ -1031,7 +1065,7 @@ class Paser {
           } // else
 
         } // else if
-        else if ( mstament.get( mindex ).mtype == 6 ) {
+        else if ( mstament.get( mindex ).mtype == Global.s_T_SEMICOLON ) {
           // System.out.println("Undefined identifier : '" + stament.get(index).mstamStr + "'" );
           // throw new Throwable();
           return true;
@@ -1044,7 +1078,7 @@ class Paser {
 
       } // if ()
       else if ( NOT_IDStartArithExpOrBexp() ) {
-        if ( mstament.get( mindex ).mtype == 6 ) {
+        if ( mstament.get( mindex ).mtype == Global.s_T_SEMICOLON ) {
           mindex++;
           return true;
         } // if ()
@@ -1122,7 +1156,7 @@ class Paser {
 
     try {
 
-      if ( mstament.get( mindex ).mtype == 3 ) {
+      if ( mstament.get( mindex ).mtype == Global.s_T_BOOLEANOPERATOE ) {
         mindex++;
         return true;
       } // if
@@ -1226,7 +1260,7 @@ class Paser {
         mindex++;
       } // if
 
-      if ( mstament.get( mindex ).mtype == 7 ) {
+      if ( mstament.get( mindex ).mtype == Global.s_T_NUM ) {
         mindex++;
         isOnePass = true;
       } // if
@@ -1240,10 +1274,10 @@ class Paser {
       return true;
 
     try {
-      if ( mstament.get( mindex ).mtype == 1 ) {
+      if ( mstament.get( mindex ).mtype == Global.s_T_LEFT_PAREN ) {
         mindex++;
         if ( ArithExp() ) {
-          if ( mstament.get( mindex ).mtype == 2 ) {
+          if ( mstament.get( mindex ).mtype == Global.s_T_RIGHT_PAREN ) {
             mindex++;
             return true;
           } // if
@@ -1324,7 +1358,7 @@ class Paser {
 
     try {
 
-      if ( mstament.get( mindex ).mtype == 4 ) {
+      if ( mstament.get( mindex ).mtype == Global.s_T_ID ) {
         mindex++;
         isOnePass = true;
       } // if
@@ -1341,11 +1375,12 @@ class Paser {
       boolean haveSIGN = false;
       String signOperator = new String();
 
-      if ( mstament.get( mindex ).mstamStr.equals( "+" ) || mstament.get( mindex ).mstamStr.equals( "-" ) ) {
+      if ( mstament.get( mindex ).mstamStr.equals( "+" ) ||
+           mstament.get( mindex ).mstamStr.equals( "-" ) ) {
         mindex++;
       } // if
 
-      if ( mstament.get( mindex ).mtype == 7 ) {
+      if ( mstament.get( mindex ).mtype == Global.s_T_NUM ) {
         mindex++;
         isOnePass = true;
       } // if
@@ -1359,12 +1394,12 @@ class Paser {
       return true;
 
     try {
-      if ( mstament.get( mindex ).mtype == 1 ) {
+      if ( mstament.get( mindex ).mtype == Global.s_T_LEFT_PAREN ) {
 
         mindex++;
         if ( ArithExp() ) {
 
-          if ( mstament.get( mindex ).mtype == 2 ) {
+          if ( mstament.get( mindex ).mtype == Global.s_T_RIGHT_PAREN ) {
             mindex++;
             return true;
           } // if
@@ -1408,7 +1443,7 @@ class ProcessComment {
       } // if
 
 
-      else if ( mstament.size() == 1 && mstament.get( 0 ).mtype == 4 ) {
+      else if ( mstament.size() == 1 && mstament.get( 0 ).mtype == Global.s_T_ID ) {
         String idName = new String( mstament.get( 0 ).mstamStr );
         if ( FindVariable( idName ) > - 1 ) {
           PrintVariable( mvariables.get( FindVariable( idName ) ) );
@@ -1517,6 +1552,9 @@ class ProcessComment {
 
   private void PrintVariable( ATOM var ) throws Throwable {
 
+    if ( ( var.mstamStr.contains( "-" ) || var.mstamStr.contains( "+" ) ) && AllIs0( var.mstamStr ) )
+      var.mstamStr = var.mstamStr.substring( 1 );
+
     if ( var.mstamStr.contains( "." ) )
       System.out.println( RegularFloat( Float.parseFloat( var.mstamStr ) ) );
     else
@@ -1525,6 +1563,8 @@ class ProcessComment {
   } // PrintVariable()
 
   private void PrintVariable( Variable var ) throws Throwable {
+    if ( ( var.mvalue.contains( "-" ) || var.mvalue.contains( "+" ) ) && AllIs0( var.mvalue ) )
+      var.mvalue = var.mvalue.substring( 1 );
 
     if ( var.mvalue.contains( "." ) )
       System.out.println( RegularFloat( Float.parseFloat( var.mvalue ) ) );
@@ -1569,6 +1609,17 @@ class ProcessComment {
     return srum;
 
   } // RegularFloat()
+
+  private boolean AllIs0( String srum ) throws Throwable {
+    boolean isAll0 = true;
+    for ( int i = 0 ; i < srum.length() ; i++ ) {
+      if ( srum.charAt( i ) >= '1' && srum.charAt( i ) <= '9' )
+        isAll0 = false;
+    } // for
+
+    return isAll0;
+
+  } // AllIs0()
 
   private String EquRegularFloat( String srum ) throws Throwable {
 
@@ -1620,7 +1671,8 @@ class ProcessComment {
       int firstParent = - 1;
       for ( int i = starIndex ; i < calmstament.size() ; i++ ) {
 
-        if ( calmstament.get( i ).mtype == 1 || calmstament.get( i ).mtype == 2 ) {
+        if ( calmstament.get( i ).mtype == Global.s_T_LEFT_PAREN ||
+             calmstament.get( i ).mtype == Global.s_T_RIGHT_PAREN ) {
           firstParent = calmstament.get( i ).mtype;
           i = calmstament.size();
         } // if
@@ -1631,7 +1683,7 @@ class ProcessComment {
 
         for ( int i = starIndex ; i < calmstament.size() ; i++ ) {
 
-          if ( calmstament.get( i ).mtype == 1 ) {
+          if ( calmstament.get( i ).mtype == Global.s_T_LEFT_PAREN ) {
             CalculteCommand( calmstament, i + 1 );
             calmstament.remove( i );
             // mstament.add(i, new ATOM(result.toString(), 7));
@@ -1645,7 +1697,7 @@ class ProcessComment {
 
         for ( int i = starIndex ; i < calmstament.size() ; i++ ) {
 
-          if ( calmstament.get( i ).mtype == 2 ) {
+          if ( calmstament.get( i ).mtype == Global.s_T_RIGHT_PAREN ) {
             calmstament.remove( i );
             Vector<ATOM> formal = CopymStament( calmstament, starIndex, i - 1 );
             RemovemStament( calmstament, starIndex, i - 1 );
@@ -1707,7 +1759,7 @@ class ProcessComment {
 
       while ( formal.size() > 2 ) {
 
-        if ( formal.get( 0 ).mtype == 4 ) {
+        if ( formal.get( 0 ).mtype == Global.s_T_ID ) {
 
           if ( FindVariable( formal.get( 0 ).mstamStr ) > - 1 ) {
             int findIndex = FindVariable( formal.get( 0 ).mstamStr );
@@ -1721,7 +1773,7 @@ class ProcessComment {
 
         } // if
 
-        if ( formal.get( 2 ).mtype == 4 ) {
+        if ( formal.get( 2 ).mtype == Global.s_T_ID ) {
 
           if ( FindVariable( formal.get( 2 ).mstamStr ) > - 1 ) {
             int findIndex = FindVariable( formal.get( 2 ).mstamStr );
@@ -1744,7 +1796,7 @@ class ProcessComment {
 
       } // while
 
-      if ( formal.size() == 1 && formal.get( 0 ).mtype == 4 ) {
+      if ( formal.size() == 1 && formal.get( 0 ).mtype == Global.s_T_ID ) {
 
         int isDefined = FindVariable( formal.get( 0 ).mstamStr );
 
@@ -1777,23 +1829,26 @@ class ProcessComment {
         if ( stament.get( 0 ).mstamStr.equals( "+" ) ||
              stament.get( 0 ).mstamStr.equals( "-" ) ) {
 
-          if ( stament.get( 0 ).mstamStr.equals( "-" ) && stament.get( 1 ).mtype == 7 ) {
+          if ( stament.get( 0 ).mstamStr.equals( "-" ) && stament.get( 1 ).mtype == Global.s_T_NUM &&
+               ! AllIs0( stament.get( 1 ).mstamStr ) ) {
 
-            if ( stament.get( 1 ).mstamStr.contains( "-" ) ) {
+            if ( stament.get( 1 ).mstamStr.contains( "-" ) && ! AllIs0( stament.get( 1 ).mstamStr ) ) {
               stament.get( 1 ).mstamStr.replace( "-", "" );
             } // if
             else if ( stament.get( 1 ).mstamStr.contains( "+" ) ) {
               stament.get( 1 ).mstamStr.replace( "+", "-" );
             } // else if
-            else if ( ! stament.get( 1 ).mstamStr.equals( "0" ) ) {
+            else
               stament.get( 1 ).mstamStr = "-" + stament.get( 1 ).mstamStr;
-            } // else if
 
             stament.remove( 0 );
 
           } // if
-
-          if ( stament.get( 0 ).mstamStr.equals( "+" ) && stament.get( 1 ).mtype == 7 )
+          else if ( stament.get( 0 ).mstamStr.equals( "+" ) &&
+                    stament.get( 1 ).mtype == Global.s_T_NUM &&
+                    ! AllIs0( stament.get( 1 ).mstamStr ) )
+            stament.remove( 0 );
+          else if ( AllIs0( stament.get( 1 ).mstamStr ) )
             stament.remove( 0 );
 
         } // if
@@ -1802,10 +1857,13 @@ class ProcessComment {
 
       for ( int i = 0 ; i < stament.size() ; i++ ) {
 
-        if ( stament.get( i ).mtype == 1 && ( ( stament.get( i + 1 ).mstamStr.equals( "+" ) ||
-                                                stament.get( i + 1 ).mstamStr.equals( "-" ) ) ) ) {
+        if ( stament.get( i ).mtype == Global.s_T_LEFT_PAREN &&
+             ( ( stament.get( i + 1 ).mstamStr.equals( "+" ) ||
+                 stament.get( i + 1 ).mstamStr.equals( "-" ) ) ) ) {
 
-          if ( stament.get( i + 1 ).mstamStr.equals( "-" ) && stament.get( i + 2 ).mtype == 7 ) {
+          if ( stament.get( i + 1 ).mstamStr.equals( "-" ) &&
+               stament.get( i + 2 ).mtype == Global.s_T_NUM &&
+               ! AllIs0( stament.get( i + 2 ).mstamStr ) ) {
 
             if ( stament.get( i + 2 ).mstamStr.contains( "-" ) ) {
               stament.get( i + 2 ).mstamStr.replace( "-", "" );
@@ -1820,15 +1878,22 @@ class ProcessComment {
             stament.remove( i + 1 );
 
           } // if
-
-          if ( stament.get( i + 1 ).mstamStr.equals( "+" ) && stament.get( i + 2 ).mtype == 7 )
+          else if ( stament.get( i + 1 ).mstamStr.equals( "+" ) &&
+                    stament.get( i + 2 ).mtype == Global.s_T_NUM &&
+                    ! AllIs0( stament.get( i + 2 ).mstamStr ) )
+            stament.remove( i + 1 );
+          else if ( stament.get( i + 2 ).mtype == Global.s_T_NUM &&
+                    AllIs0( stament.get( i + 2 ).mstamStr ) )
             stament.remove( i + 1 );
 
         } // if
-        else if ( stament.get( i ).mtype == 5 && ( ( stament.get( i + 1 ).mstamStr.equals( "+" ) ||
-                                                     stament.get( i + 1 ).mstamStr.equals( "-" ) ) ) ) {
+        else if ( stament.get( i ).mtype == Global.s_T_OPERATOR &&
+                  ( ( stament.get( i + 1 ).mstamStr.equals( "+" ) ||
+                      stament.get( i + 1 ).mstamStr.equals( "-" ) ) ) ) {
 
-          if ( stament.get( i + 1 ).mstamStr.equals( "-" ) && stament.get( i + 2 ).mtype == 7 ) {
+          if ( stament.get( i + 1 ).mstamStr.equals( "-" ) &&
+               stament.get( i + 2 ).mtype == Global.s_T_NUM &&
+               ! AllIs0( stament.get( i + 2 ).mstamStr ) ) {
 
             if ( stament.get( i + 2 ).mstamStr.contains( "-" ) ) {
               stament.get( i + 2 ).mstamStr.replace( "-", "" );
@@ -1843,8 +1908,12 @@ class ProcessComment {
             stament.remove( i + 1 );
 
           } // if
-
-          if ( stament.get( i + 1 ).mstamStr.equals( "+" ) && stament.get( i + 2 ).mtype == 7 )
+          else if ( stament.get( i + 1 ).mstamStr.equals( "+" ) &&
+                    stament.get( i + 2 ).mtype == Global.s_T_NUM &&
+                    ! AllIs0( stament.get( i + 2 ).mstamStr ) )
+            stament.remove( i + 1 );
+          else if ( stament.get( i + 2 ).mtype == Global.s_T_NUM &&
+                    AllIs0( stament.get( i + 2 ).mstamStr ) )
             stament.remove( i + 1 );
 
         } // else if
@@ -1858,7 +1927,7 @@ class ProcessComment {
 
     try {
       for ( int i = 0 ; i < stament.size() ; i++ ) {
-        if ( stament.get( i ).mtype == 7 ) {
+        if ( stament.get( i ).mtype == Global.s_T_NUM ) {
 
           if ( stament.get( i ).mstamStr.contains( "." ) ) {
             Double rv = Double.parseDouble( stament.get( i ).mstamStr );
